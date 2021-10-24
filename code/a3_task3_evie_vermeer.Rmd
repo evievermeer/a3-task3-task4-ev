@@ -1,0 +1,91 @@
+---
+title: "Asssignment 3, Task 3"
+author: "Evie Vermeer"
+date: "10/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(here)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(kableExtra)
+library(lubridate)
+```
+
+```{r}
+# Read in data
+urchins <- read_csv(here("data","urchins.csv")) %>% clean_names()
+```
+
+### Section 1: Size comparisons, purple and red urchins
+```{r}
+# Data vizualization
+ggplot(data = urchins, aes(x=size,fill=common_name)) +
+  geom_histogram(bins = 10, alpha=0.5, position = "identity")+
+  labs(x = "Urchin Diameter (mm)",
+       y= "Number of Urchins",
+       title = "Size Distribution Comparisons, Purple and Red Urchins",
+       fill ="Urchin Type") +
+  scale_fill_manual(values = c("Purple Urchin"="blueviolet","Red Urchin"="firebrick3"))
+
+```
+
+```{r}
+#Descriptive statistics table
+urchins_stats <- urchins %>% 
+  group_by(common_name) %>% 
+  summarize(mean_size = mean(size, na.rm = TRUE),
+            sd_size = sd(size, na.rm = TRUE),
+            sample_size = n())
+
+urchins_stats %>% 
+  kable(col.names = c("Species",
+                      "Mean (mm)",
+                      "Standard Deviation (mm)",
+                      "Sample Size (n)"),
+                    caption = "Descriptive Statistics of Urchin Diameters by Species",
+                    digits = 3) %>% 
+  kable_styling(full_width = FALSE)
+```
+
+##### These data show that purple urchins are generally smaller in diameter than red urchins. Specifically, the average diameter of a purple urchin is 34% less than the average diameter of a red urchin (4.47 and 6.78 mm, respectively). The histogram above shows the the most common size of a purple urchin is less than the most common size of a red urchin. 
+
+### Section 2: Purple Urchin Counts by site and year
+
+```{r}
+purple_urchins <- urchins %>% 
+  filter(common_name=="Purple Urchin") %>% 
+  mutate(date_new = ymd(date)) %>% 
+  mutate(year = year(date_new)) %>% 
+  mutate(full_site = case_when(
+          site %in% c("NAPL") ~ "Naples Reef",
+          site %in% c("AQUE") ~ "Arroyo Quemado Reef",
+          site %in% c("CARP") ~ "Carpinteria Reef",
+          site %in% c("MOHK") ~ "Mohawk Reef",
+          site %in% c("IVEE") ~ "Isla Vista Reef"))
+
+```
+
+```{r}
+purple_urchins_stats <- purple_urchins %>% 
+  group_by(full_site,year) %>% 
+  count(common_name) %>% 
+  na.omit()
+```
+
+```{r}
+ggplot(data = purple_urchins_stats, aes(x=year, y=n,fill=full_site))+
+  geom_bar(stat = "identity", position = "dodge")+
+  labs(x="",
+       y="",
+       title="",
+       fill="")
+```
+Make a finalized graph of counts of purple urchins recorded at each site over time for the years included in the study. Add a figure caption.
+Add text below your graph: do you think this graph reflects changes in the 
+
+
