@@ -6,25 +6,71 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(here)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(kableExtra)
+library(lubridate) 
+library(plotly)
+
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+urchins <- read_csv(here("data","urchins.csv")) %>% clean_names()
+  
+```
+```{r}
+mean_size_purple_urchins <- urchins %>% 
+  filter(common_name=="Purple Urchin") %>% 
+  group_by(treatment) %>% 
+  summarize(mean_size=mean(size))
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r}
+naples_purple_urchins_2010 <- urchins %>% 
+  mutate(date_new = ymd(date)) %>% 
+  mutate(year = year(date_new)) %>% 
+  filter(year == "2010",common_name == "Purple Urchin", site == "NAPL") 
+  
 
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+ggplot(data=naples_purple_urchins_2010, aes(x=size,fill=treatment))+
+      geom_histogram(bins=8, alpha=0.4, position ="identity")+
+  facet_wrap(~treatment)
+# Debating whether to use facet_wrap to split treatments into separate histograms or overlay them for more easy comparison
+
+      
+```
+
+```{r}
+ggplot(data=naples_purple_urchins_2010, aes(sample=size))+
+      geom_qq()
+
+# This needs work 
+```
+
+```{r}
+naples_purple_urchins_2010_stats <- naples_purple_urchins_2010 %>% 
+  group_by(treatment) %>% 
+  summarize(mean_size=mean(size, na.rm= TRUE),
+            sd_size=sd(size, na.rm= TRUE),
+            sample_size=n())
+
+naples_purple_urchins_2010_stats %>% 
+  kable(col.names = c("Treatment",
+                      "Mean (mm)",
+                      "Standard Deviation(mm)",
+                      "Sample size (n)"),
+                    caption = "Descriptive Statistics for Purple Urchins on Naples Reef - 2010") %>% 
+  kable_styling(full_width=FALSE)
+            
+```
+
+
+
