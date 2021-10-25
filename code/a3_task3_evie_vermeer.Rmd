@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-
+options(digits=3)
 library(here)
 library(tidyverse)
 library(ggplot2)
@@ -25,12 +25,15 @@ urchins <- read_csv(here("data","urchins.csv")) %>% clean_names()
 ```{r}
 # Data vizualization
 ggplot(data = urchins, aes(x=size,fill=common_name)) +
-  geom_histogram(bins = 10, alpha=0.5, position = "identity")+
+  geom_histogram(bins = 10, position = "identity")+
+  facet_wrap(~common_name)+
   labs(x = "Urchin Diameter (mm)",
        y= "Number of Urchins",
        title = "Size Distribution Comparisons, Purple and Red Urchins",
        fill ="Urchin Type") +
   scale_fill_manual(values = c("Purple Urchin"="blueviolet","Red Urchin"="firebrick3"))
+
+### facet wrap by common name
 
 ```
 
@@ -59,7 +62,7 @@ urchins_stats %>%
 ```{r}
 purple_urchins <- urchins %>% 
   filter(common_name=="Purple Urchin") %>% 
-  mutate(date_new = ymd(date)) %>% 
+  mutate(date_new = mdy(date)) %>% 
   mutate(year = year(date_new)) %>% 
   mutate(full_site = case_when(
           site %in% c("NAPL") ~ "Naples Reef",
@@ -78,15 +81,19 @@ purple_urchins_stats <- purple_urchins %>%
 ```
 
 ```{r}
-ggplot(data = purple_urchins_stats, aes(x=year, y=n,fill=full_site))+
-  geom_bar(stat = "identity", position = "dodge")+
+ggplot(data = purple_urchins_stats, aes(x=year, y=n,fill=full_site,color=full_site))+
+  geom_line(stat = "identity")+
+  theme_bw()+
   labs(x="Year",
        y="Number of Purple Urchins",
        title="Number of Purple Urchins at Each Site by Year",
-       fill="Site:")+
-  scale_x_continuous(breaks = c(2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012))
-```
+       fill="Reef")+
+  scale_x_continuous(breaks = seq(2008,2020,2))
 
+### Need to update your legend title 
+### can also use scale_x_discrete(limit = c(2008-2020))
+```
+## 
 
 ##### The data shown lead me to a few preliminary observations. At first glance, it would seem to show that purple sea urchins are declining at these sites year over year. However, we would need to aggregate the number of urchins at each site for this timeframe and determine some summary statistics such as the mean and the data spread, and then compare these data and their progressions in that context. A regression of these trends would be helpful as well. One last thing to note is that data collection may have been unreliable (considering the lack of observations for all sites - particularly 2004 & 2007). Thus this may not be the most representative sample. 
 

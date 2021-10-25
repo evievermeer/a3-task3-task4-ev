@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-
+options(digits=3)
 library(here)
 library(tidyverse)
 library(ggplot2)
@@ -43,16 +43,15 @@ naples_purple_urchins_2010 <- urchins %>%
 ggplot(data=naples_purple_urchins_2010, aes(x=size,fill=treatment))+
       geom_histogram(bins=8, alpha=0.4, position ="identity")+
   facet_wrap(~treatment)
-# Debating whether to use facet_wrap to split treatments into separate histograms or overlay them for more easy comparison
-
-      
+  
 ```
 
 ```{r}
-ggplot(data=naples_purple_urchins_2010, aes(sample=size))+
-      geom_qq()
-
-# This needs work 
+ggplot(data=naples_purple_urchins_2010, aes(sample=size, color =treatment))+
+      geom_qq(shape = 4, size = 4)+
+      geom_qq_line(color="black")+
+      facet_wrap(~treatment)
+ 
 ```
 
 ```{r}
@@ -69,7 +68,6 @@ naples_purple_urchins_2010_stats %>%
                       "Sample size (n)"),
                     caption = "Descriptive Statistics for Purple Urchins on Naples Reef - 2010") %>% 
   kable_styling(full_width=FALSE)
-            
 ```
 
 
