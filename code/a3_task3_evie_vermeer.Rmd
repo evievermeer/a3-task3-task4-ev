@@ -17,42 +17,39 @@ library(lubridate)
 ```
 
 ```{r}
-# Read in data
+# Read in data and clean 
 urchins <- read_csv(here("data","urchins.csv")) %>% clean_names()
 ```
 
 ### Section 1: Size comparisons, purple and red urchins
 ```{r}
 # Data vizualization
-ggplot(data = urchins, aes(x=size,fill=common_name)) +
-  geom_histogram(bins = 10, position = "identity")+
-  facet_wrap(~common_name)+
-  labs(x = "Urchin Diameter (mm)",
+ggplot(data = urchins, aes(x=size,fill=common_name)) + #using urchin data, puting size on x-axis and assigning colors by urchin type
+  geom_histogram(bins = 10, position = "identity")+ # adjusting no. of bins 
+  facet_wrap(~common_name)+ # facet wrapping to create a histogram for each urchin type
+  labs(x = "Urchin Diameter (mm)", 
        y= "Number of Urchins",
        title = "Size Distribution Comparisons, Purple and Red Urchins",
-       fill ="Urchin Type") +
-  scale_fill_manual(values = c("Purple Urchin"="blueviolet","Red Urchin"="firebrick3"))
-
-### facet wrap by common name
-
+       fill ="Urchin Type") + # adding axis labels, along with titles for histograms and legends
+  scale_fill_manual(values = c("Purple Urchin"="blueviolet","Red Urchin"="firebrick3")) # customized colors for each histogram
 ```
 
 ```{r}
 #Descriptive statistics table
-urchins_stats <- urchins %>% 
-  group_by(common_name) %>% 
+urchins_stats <- urchins %>% #creating new data set
+  group_by(common_name) %>% #grouping by common name 
   summarize(mean_size = mean(size, na.rm = TRUE),
             sd_size = sd(size, na.rm = TRUE),
-            sample_size = n())
+            sample_size = n()) #creating varialbes for mean, sd and sample size for each type of urchin 
 
 urchins_stats %>% 
   kable(col.names = c("Species",
                       "Mean (mm)",
                       "Standard Deviation (mm)",
-                      "Sample Size (n)"),
-                    caption = "Descriptive Statistics of Urchin Diameters by Species",
-                    digits = 3) %>% 
-  kable_styling(full_width = FALSE)
+                      "Sample Size (n)"), #adding variables to table
+                    caption = "Descriptive Statistics of Urchin Diameters by Species", 
+                    digits = 3) %>% # adding caption and significant figure parameters
+  kable_styling(full_width = FALSE) # formatting
 ```
 
 ##### These data show that purple urchins are generally smaller in diameter than red urchins. Specifically, the average diameter of a purple urchin is 34% less than the average diameter of a red urchin (4.47 and 6.78 mm, respectively). The histogram above shows the the most common size of a purple urchin is less than the most common size of a red urchin. 
@@ -60,41 +57,40 @@ urchins_stats %>%
 ### Section 2: Purple Urchin Counts by site and year
 
 ```{r}
-purple_urchins <- urchins %>% 
-  filter(common_name=="Purple Urchin") %>% 
+purple_urchins <- urchins %>% # creating new data set for purple urchins 
+  filter(common_name=="Purple Urchin") %>% #only common names for purple urchin 
   mutate(date_new = mdy(date)) %>% 
-  mutate(year = year(date_new)) %>% 
+  mutate(year = year(date_new)) %>% # changing date variable to new ones, ultimately just isolating year
   mutate(full_site = case_when(
           site %in% c("NAPL") ~ "Naples Reef",
           site %in% c("AQUE") ~ "Arroyo Quemado Reef",
           site %in% c("CARP") ~ "Carpinteria Reef",
           site %in% c("MOHK") ~ "Mohawk Reef",
-          site %in% c("IVEE") ~ "Isla Vista Reef"))
+          site %in% c("IVEE") ~ "Isla Vista Reef")) # adding full names of reefs
 
 ```
 
 ```{r}
 purple_urchins_stats <- purple_urchins %>% 
-  group_by(full_site,year) %>% 
-  count(common_name) %>% 
+  group_by(full_site,year) %>% # grouping data by reefs
+  count(common_name) %>% #counting no. of purple urchins by each reef
   na.omit()
 ```
 
 ```{r}
-ggplot(data = purple_urchins_stats, aes(x=year, y=n,fill=full_site,color=full_site))+
-  geom_line(stat = "identity")+
-  theme_bw()+
+ggplot(data = purple_urchins_stats, aes(x=year, y=n,fill=full_site,color=full_site),)+ 
+  # creating plot with new dataset, adding axis criteria, legend and assigning colors 
+  geom_line(stat = "identity")+ # making line graph
+  theme_bw()+ # theme
+  theme(legend.title = element_blank())+ #removing legend title (self-explanatory)
   labs(x="Year",
        y="Number of Purple Urchins",
-       title="Number of Purple Urchins at Each Site by Year",
-       fill="Reef")+
-  scale_x_continuous(breaks = seq(2008,2020,2))
-
-### Need to update your legend title 
-### can also use scale_x_discrete(limit = c(2008-2020))
+       title="Number of Purple Urchins at Each Site by Year")+ #adding axis labels and title  
+  scale_x_continuous(breaks = seq(2008,2020,2)) #adjusting scale of x-axis
+ 
+# Can also use scale_x_discrete(limit = c(2008-2020))
 ```
-## 
 
-##### The data shown lead me to a few preliminary observations. At first glance, it would seem to show that purple sea urchins are declining at these sites year over year. However, we would need to aggregate the number of urchins at each site for this timeframe and determine some summary statistics such as the mean and the data spread, and then compare these data and their progressions in that context. A regression of these trends would be helpful as well. One last thing to note is that data collection may have been unreliable (considering the lack of observations for all sites - particularly 2004 & 2007). Thus this may not be the most representative sample. 
+##### The data shown lead me to a few preliminary observations. At first glance, it would seem to show that purple sea urchins are declining at these sites year over year. However, we would need to aggregate the number of urchins at each site for this timeframe and determine some summary statistics such as the mean and the data spread, and then compare these data and their progressions in that context. A regression of these trends would be helpful as well.  
 
 

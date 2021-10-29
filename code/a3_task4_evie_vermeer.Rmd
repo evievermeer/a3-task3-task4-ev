@@ -19,55 +19,67 @@ library(plotly)
 ```
 
 ```{r}
+# Read in data and clean 
 urchins <- read_csv(here("data","urchins.csv")) %>% clean_names()
-  
 ```
+
 ```{r}
-mean_size_purple_urchins <- urchins %>% 
-  filter(common_name=="Purple Urchin") %>% 
-  group_by(treatment) %>% 
-  summarize(mean_size=mean(size))
+mean_size_purple_urchins <- urchins %>% # creating new dataset
+  filter(common_name=="Purple Urchin") %>% #filtering by purple urchin
+  group_by(treatment) %>% #grouping by treatment
+  summarize(mean_size=mean(size)) #adding variable for mean of size
 ```
 
 
 ```{r}
-naples_purple_urchins_2010 <- urchins %>% 
+naples_purple_urchins_2010 <- urchins %>% # Creating new dataset
   mutate(date_new = ymd(date)) %>% 
-  mutate(year = year(date_new)) %>% 
-  filter(year == "2010",common_name == "Purple Urchin", site == "NAPL") 
+  mutate(year = year(date_new)) %>% # New variable of year after mutating old variable/isolating year
+  filter(year == "2010",common_name == "Purple Urchin", site == "NAPL") # filtering by year, species and reef
   
 
 ```
 
 ```{r}
-ggplot(data=naples_purple_urchins_2010, aes(x=size,fill=treatment))+
-      geom_histogram(bins=8, alpha=0.4, position ="identity")+
-  facet_wrap(~treatment)
+ggplot(data=naples_purple_urchins_2010, aes(x=size,fill=treatment))+ # new plot with x-axis:size and using variable: treatment
+      geom_histogram(bins=8, alpha=.4,  position ="identity")+ # adjusting bins (and opacity for fun)
+  facet_wrap(~treatment)+ # facet wrapping to get two histograms for each treatment
+  labs(x= "Size (cm)",
+           y= "Number of Urchins",
+           title="Purple Urchin Sizes on Naples Reef - 2010",
+           subtitle= "Comparison of Annual (Kelp Removal) vs. Control (No Kelp Removal)",
+           fill="Treatment") # adding axis labels, and titles(/subtitles)
   
 ```
 
 ```{r}
-ggplot(data=naples_purple_urchins_2010, aes(sample=size, color =treatment))+
-      geom_qq(shape = 4, size = 4)+
-      geom_qq_line(color="black")+
-      facet_wrap(~treatment)
+ggplot(data=naples_purple_urchins_2010, aes(sample=size, color =treatment))+ # plotting with same dataset, assigning color by treatment
+      geom_qq(shape = 4, size = 4)+ #creating quartile-quartile plot
+      geom_qq_line(color="black")+ #adding quartile line
+      facet_wrap(~treatment) + # facet wrapping to get two plots for each treatment
+      labs(x= "Offset from Median (cm)",
+           y= "Size (cm)",
+               title="Quantile Quantile Plot: Annual (Kelp Removal) vs. Control (No Kelp Removal)") #adding axis labels and title
+```
  
-```
+### As the QQ plot and viewing of the histograms above reveal, the data for the annual treatment is not normally distributed while the data for the control treatment mostly is. While the data for the kelp removal treatment do not have a normal distribution, their mean and mode are both slightly lower than the data for the control (no kelp removal). This is interesting to reflect upon because both sample sizes are (fairly) robust.
 
 ```{r}
-naples_purple_urchins_2010_stats <- naples_purple_urchins_2010 %>% 
-  group_by(treatment) %>% 
-  summarize(mean_size=mean(size, na.rm= TRUE),
+naples_purple_urchins_2010_stats <- naples_purple_urchins_2010 %>% # creating dataset for statistics
+  group_by(treatment) %>% #grouping by each treatment
+  summarize(mean_size=mean(size, na.rm= TRUE), 
             sd_size=sd(size, na.rm= TRUE),
-            sample_size=n())
+            sample_size=n()) #creating variables for mean, sd and sample size
 
 naples_purple_urchins_2010_stats %>% 
   kable(col.names = c("Treatment",
                       "Mean (mm)",
                       "Standard Deviation(mm)",
-                      "Sample size (n)"),
-                    caption = "Descriptive Statistics for Purple Urchins on Naples Reef - 2010") %>% 
-  kable_styling(full_width=FALSE)
+                      "Sample size (n)"), #creating table with data, adding headers
+                    caption = "Descriptive Statistics for Purple Urchins on Naples Reef - 2010") %>% #adding title
+  kable_styling(full_width=FALSE) #formatting
+
+# Can also use the round() function to adjust significant figures 
 ```
 
 
